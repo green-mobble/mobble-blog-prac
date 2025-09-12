@@ -102,6 +102,24 @@ public class BoardController {
         return "board/myfeed-page";
     }
 
+    // 게시물 검색
+    @GetMapping("/search")
+    public String searchBoards(HttpServletRequest request, 
+                              @RequestParam(required = false) String keyword,
+                              @RequestParam(defaultValue = "1") Integer page, 
+                              @RequestParam(defaultValue = "CREATED_AT_DESC") String order) {
+        User user = getSessionUser();
+        System.out.println("[SEARCH] keyword=" + keyword + ", page=" + page + ", order=" + order);
+        
+        List<BoardResponse.DTO> boardDTOList = boardService.searchBoards(
+                keyword, user, getFirstIndex(page), PER_PAGE + 1, safeOrder(order));
+        
+        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, page, order, null);
+        request.setAttribute("model", resDTO);
+        request.setAttribute("keyword", keyword);
+        return "board/list-page";
+    }
+
 
 
     /*                             private logic part

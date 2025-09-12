@@ -126,4 +126,136 @@ public class BoardRepository {
                         .setMaxResults(maxResult)
                         .getResultList());
     }
+
+    public List<Board> searchBoards(String keyword, String orderBy, int firstIndex, int maxResult) {
+        String sql = buildSearchQuery(keyword, orderBy);
+        
+        var query = em.createNativeQuery(sql, Board.class)
+                .setFirstResult(firstIndex)
+                .setMaxResults(maxResult);
+        
+        // 키워드에 따른 파라미터 바인딩
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String trimmedKeyword = keyword.trim();
+            if (trimmedKeyword.startsWith("#")) {
+                String category = trimmedKeyword.substring(1);
+                query.setParameter("category", category);
+            } else if (trimmedKeyword.startsWith("@")) {
+                String username = trimmedKeyword.substring(1);
+                query.setParameter("username", username);
+            } else {
+                query.setParameter("keyword", "%" + trimmedKeyword + "%");
+            }
+        }
+        
+        @SuppressWarnings("unchecked")
+        List<Board> boards = query.getResultList();
+        
+        return boards;
+    }
+
+    public List<Integer> getBookmarkCounts(List<Integer> boardIds) {
+        if (boardIds.isEmpty()) {
+            return List.of();
+        }
+        
+        String sql = """
+                SELECT b.id, COALESCE(COUNT(bm.id), 0) as bookmark_count
+                FROM board b
+                LEFT JOIN bookmark bm ON b.id = bm.board_id
+                WHERE b.id IN :boardIds
+                GROUP BY b.id
+                ORDER BY b.id
+                """;
+        
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("boardIds", boardIds)
+                .getResultList();
+        
+        // boardIds 순서대로 북마크 수 매핑
+        return boardIds.stream()
+                .map(boardId -> rows.stream()
+                        .filter(row -> ((Number) row[0]).intValue() == boardId)
+                        .findFirst()
+                        .map(row -> ((Number) row[1]).intValue())
+                        .orElse(0))
+                .toList();
+    }
+
+    public List<Boolean> getMyBookmarkStatus(List<Integer> boardIds, Integer userId) {
+        if (boardIds.isEmpty()) {
+            return List.of();
+        }
+        
+        String sql = """
+                SELECT board_id
+                FROM bookmark
+                WHERE board_id IN :boardIds AND user_id = :userId
+                """;
+        
+        @SuppressWarnings("unchecked")
+        List<Integer> bookmarkedBoardIds = em.createNativeQuery(sql, Integer.class)
+                .setParameter("boardIds", boardIds)
+                .setParameter("userId", userId)
+                .getResultList();
+        
+        return boardIds.stream()
+                .map(bookmarkedBoardIds::contains)
+                .toList();
+    }
+
+    private String buildSearchQuery(String keyword, String orderBy) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT * FROM board b ");
+        
+        // 키워드 검색 조건 추가
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("WHERE ");
+            sql.append(buildSearchCondition(keyword.trim()));
+        }
+        
+        // 정렬 조건 추가
+        sql.append(" ORDER BY ");
+        sql.append(buildOrderByClause(orderBy));
+        
+        return sql.toString();
+    }
+
+    private String buildSearchCondition(String keyword) {
+        if (keyword.startsWith("#")) {
+            // 카테고리 검색 - 서브쿼리로 카테고리 ID 조회
+            return "b.category_id IN (SELECT id FROM category WHERE category = :category)";
+        } else if (keyword.startsWith("@")) {
+            // 작성자 검색 - 서브쿼리로 사용자 ID 조회
+            return "b.user_id IN (SELECT id FROM user WHERE username = :username)";
+        } else {
+            // 제목과 내용 검색
+            return "(b.title LIKE :keyword OR b.content LIKE :keyword)";
+        }
+    }
+
+    private String buildOrderByClause(String orderBy) {
+        if (orderBy == null || orderBy.isBlank()) {
+            return "b.created_at DESC, b.id DESC";
+        }
+        
+        String trimmed = orderBy.strip();
+        if (trimmed.toLowerCase().startsWith("order by")) {
+            trimmed = trimmed.substring(8).trim();
+        }
+        
+        // 정렬 컬럼 매핑
+        String orderColumn = switch (trimmed.toLowerCase()) {
+            case "views asc" -> "b.views ASC";
+            case "views desc" -> "b.views DESC";
+            case "bookmark_count asc" -> "b.views ASC"; // 북마크 수는 별도 조회 후 정렬
+            case "bookmark_count desc" -> "b.views DESC"; // 북마크 수는 별도 조회 후 정렬
+            case "created_at asc" -> "b.created_at ASC";
+            case "created_at desc" -> "b.created_at DESC";
+            default -> "b.created_at DESC";
+        };
+        
+        return orderColumn + ", b.id DESC";
+    }
 }

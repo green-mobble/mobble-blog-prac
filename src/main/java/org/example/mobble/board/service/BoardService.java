@@ -199,4 +199,72 @@ public class BoardService {
         String orderBy = orderByToString(order);
         return boardRepository.findAllByUserId(orderBy, firstIndex, size, user);
     }
+
+    @Transactional(readOnly = true)
+    public List<BoardResponse.DTO> searchBoards(String keyword, User user, int firstIndex, int size, SearchOrderCase order) {
+        // 북마크 수 기준 정렬인 경우 더 많은 데이터를 조회해서 정렬 후 페이징
+        int querySize = isBookmarkCountOrder(order) ? size * 3 : size; // 북마크 수 정렬시 더 많이 조회
+        String orderBy = orderByToString(order);
+        
+        // 1. Board 엔티티들 조회
+        List<Board> boards = boardRepository.searchBoards(keyword, orderBy, 0, querySize);
+        
+        if (boards.isEmpty()) {
+            return List.of();
+        }
+        
+        // 2. Board ID 리스트 추출
+        List<Integer> boardIds = boards.stream()
+                .map(Board::getId)
+                .toList();
+        
+        // 3. 북마크 수 조회
+        List<Integer> bookmarkCounts = boardRepository.getBookmarkCounts(boardIds);
+        
+        // 4. 사용자의 북마크 여부 조회
+        List<Boolean> myBookmarkStatus = boardRepository.getMyBookmarkStatus(boardIds, user.getId());
+        
+        // 5. DTO 생성 및 바인딩
+        List<BoardResponse.DTO> dtos = boards.stream()
+                .map(board -> {
+                    int index = boards.indexOf(board);
+                    Integer bookmarkCount = index < bookmarkCounts.size() ? bookmarkCounts.get(index) : 0;
+                    Boolean isBookmark = index < myBookmarkStatus.size() ? myBookmarkStatus.get(index) : false;
+                    
+                    return BoardResponse.DTO.builder()
+                            .board(board)
+                            .user(board.getUser())
+                            .category(board.getCategory())
+                            .bookmarkCount(bookmarkCount)
+                            .isBookmark(isBookmark)
+                            .image(board.getThumbnailUrl())
+                            .build();
+                })
+                .toList();
+        
+        // 6. 북마크 수 기준 정렬인 경우 정렬 후 페이징
+        if (isBookmarkCountOrder(order)) {
+            dtos.sort((dto1, dto2) -> {
+                int comparison = Integer.compare(dto1.getBookmarkCount(), dto2.getBookmarkCount());
+                if (order == SearchOrderCase.BOOKMARK_COUNT_DESC) {
+                    comparison = -comparison; // 내림차순
+                }
+                return comparison;
+            });
+            
+            // 페이징 적용
+            int startIndex = firstIndex;
+            int endIndex = Math.min(startIndex + size, dtos.size());
+            if (startIndex >= dtos.size()) {
+                return List.of();
+            }
+            return dtos.subList(startIndex, endIndex);
+        }
+        
+        return dtos;
+    }
+    
+    private boolean isBookmarkCountOrder(SearchOrderCase order) {
+        return order == SearchOrderCase.BOOKMARK_COUNT_ASC || order == SearchOrderCase.BOOKMARK_COUNT_DESC;
+    }
 }
