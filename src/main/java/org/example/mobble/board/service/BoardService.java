@@ -158,30 +158,10 @@ public class BoardService {
 
     }
 
-    /*                             search board list part
-     * ----------------------------------------------------------------------------------
-     */
-
     private Board findById(Integer boardId) {
         return boardRepository.findById(boardId).orElseThrow(
                 () -> new Exception404(ErrorEnum.NOT_FOUND_BOARD)
         );
-    }
-
-    @Transactional(readOnly = true)
-    public List<BoardResponse.DTO> findBy(User user, String keyword, SearchOrderCase order, Integer firstIndex, Integer size) {
-        String orderBy = orderByToString(order);
-        String q = keyword == null ? "" : keyword.trim();
-        if (q.isEmpty()) throw new Exception400(ErrorEnum.BAD_REQUEST_NO_EXISTS_KEYWORD);
-        char searchKey = q.charAt(0);
-        if (q.length() == 1 && (searchKey == '#' || searchKey == '@'))
-            throw new Exception400(ErrorEnum.BAD_REQUEST_ONLY_PREFIX);
-        q = (searchKey == '#' || searchKey == '@') ? q.substring(1) : q;
-        return switch (searchKey) {
-            case '#' -> boardRepository.findByCategory(user.getId(), q, orderBy, firstIndex, size);
-            case '@' -> boardRepository.findByUsername(user.getId(), q, orderBy, firstIndex, size);
-            default -> boardRepository.findByTitleAndContent(user.getId(), q, orderBy, firstIndex, size);
-        };
     }
 
     /*                             private logic part

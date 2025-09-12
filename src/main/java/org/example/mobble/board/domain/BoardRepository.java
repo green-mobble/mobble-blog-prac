@@ -58,9 +58,6 @@ public class BoardRepository {
         em.remove(em.find(Board.class, boardId));
     }
 
-    /*                             search board list part
-     * ----------------------------------------------------------------------------------
-     */
     public List<BoardResponse.DTO> findAll(Integer userId, String orderBy, Integer firstIndex, Integer maxResult) {
         String jpql = getBaseJpql(null, orderBy);
         return mapping(
@@ -69,25 +66,6 @@ public class BoardRepository {
                         .setFirstResult(firstIndex)
                         .setMaxResults(maxResult)
                         .getResultList());
-    }
-
-    public List<BoardResponse.DTO> findByTitleAndContent(Integer userId, String keyword, String orderBy, Integer firstIndex, Integer maxResult) {
-        String where = " where ( lower(b.title) like :q " +
-                " or lower(cast(b.content as string)) like :q ) ";
-
-        String jpql = getBaseJpql(where, orderBy);
-
-        return mapping(getObjArrListWithParam(userId, keyword, jpql, firstIndex, maxResult));
-    }
-
-    public List<BoardResponse.DTO> findByCategory(Integer userId, String keyword, String orderBy, Integer firstIndex, Integer maxResult) {
-        String jpql = getBaseJpql(" where lower(c.category) like :q ", orderBy);
-        return mapping(getObjArrListWithParam(userId, keyword, jpql, firstIndex, maxResult));
-    }
-
-    public List<BoardResponse.DTO> findByUsername(Integer userId, String keyword, String orderBy, Integer firstIndex, Integer maxResult) {
-        String jpql = getBaseJpql(" where lower(u.username) like :q ", orderBy);
-        return mapping(getObjArrListWithParam(userId, keyword, jpql, firstIndex, maxResult));
     }
 
     /* ------------------------ private logic part ------------------------ */
@@ -137,14 +115,6 @@ public class BoardRepository {
                 .toList();
     }
 
-    private List<Object[]> getObjArrListWithParam(Integer userId, String keyword, String jpql, Integer firstResult, Integer maxResult) {
-        return em.createQuery(jpql, Object[].class)
-                .setParameter("q", "%" + keyword + "%")
-                .setParameter("userId", userId)
-                .setFirstResult(firstResult)
-                .setMaxResults(maxResult)
-                .getResultList();
-    }
 
 
     public List<BoardResponse.DTO> findAllByUserId(String orderBy, int firstIndex, int maxResult, User user) {

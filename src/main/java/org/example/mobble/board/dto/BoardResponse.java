@@ -31,19 +31,13 @@ public class BoardResponse {
             String queryString;
 
             @Builder
-            public PageDTO(Integer page, Boolean isFirst, Boolean isLast, String order, String keyword) {
+            public PageDTO(Integer page, Boolean isFirst, Boolean isLast, String order) {
                 this.page = page;
                 this.isFirst = isFirst;
                 this.isLast = isLast;
                 this.prev = !isFirst ? page - 1 : page;
                 this.next = !isLast ? page + 1 : page;
                 this.queryString = "?order=" + order;
-                if (keyword != null && !keyword.equals("")) {
-                    if (keyword.contains("#")) {
-                        keyword = keyword.replace("#", "%23");
-                    }
-                    this.queryString = "/search" + this.queryString + "&keyword=" + keyword;
-                }
             }
         }
 

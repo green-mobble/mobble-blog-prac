@@ -48,7 +48,7 @@ public class BoardController {
         User user = getSessionUser();
         System.out.println("[LOGIN] sessionId=" + session.getId() + ", user=" + user.getUsername());
         List<BoardResponse.DTO> boardDTOList = boardService.getList(user, getFirstIndex(page), PER_PAGE + 1, safeOrder(order));
-        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, page, order, null, null);
+        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, page, order, null);
         request.setAttribute("model", resDTO);
         return "board/list-page";
     }
@@ -87,7 +87,7 @@ public class BoardController {
     @PostMapping("/{id}/report")
     public String reportSave(@PathVariable(name = "id") Integer boardId, BoardRequest.ReportSaveDTO reqDTO) {
         User user = getSessionUser();
-        BoardResponse.ReportSaveDTO resDTO = boardService.reportSave(user, boardId, reqDTO);
+        boardService.reportSave(user, boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
@@ -97,23 +97,12 @@ public class BoardController {
     public String getMyFeedList(HttpServletRequest request, BoardRequest.MyFeedDTO reqDTO) {
         User user = getSessionUser();
         List<BoardResponse.DTO> boardDTOList = boardService.getMyFeedList(getFirstIndex(reqDTO.getPage()), PER_PAGE + 1, safeOrder(reqDTO.getOrder()), user);
-        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, reqDTO.getPage(), reqDTO.getOrder(), null, user);
+        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, reqDTO.getPage(), reqDTO.getOrder(), user);
         request.setAttribute("model", resDTO);
         return "board/myfeed-page";
     }
 
 
-    /*                             search board list part
-     * ----------------------------------------------------------------------------------
-     */
-    @GetMapping("/search")
-    public String findList(HttpServletRequest request, @RequestParam String keyword, @RequestParam(defaultValue = "CREATED_AT_DESC") String order, @RequestParam(defaultValue = "1") Integer page) {
-        User user = getSessionUser();
-        List<BoardResponse.DTO> boardDTOList = boardService.findBy(user, keyword, safeOrder(order), getFirstIndex(page), PER_PAGE + 1);
-        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, page, order, keyword, null);
-        request.setAttribute("model", resDTO);
-        return "board/list-page";
-    }
 
     /*                             private logic part
      * ----------------------------------------------------------------------------------
@@ -142,7 +131,7 @@ public class BoardController {
      * request에 page, nextPage, prevPage도 함께 심습니다.
      */
 
-    private BoardResponse.mainListDTO getMainList(List<BoardResponse.DTO> boardDTOList, Integer page, String order, String keyword, User user) {
+    private BoardResponse.mainListDTO getMainList(List<BoardResponse.DTO> boardDTOList, Integer page, String order, User user) {
         User sessionUser = getSessionUser();
         int getSize = 3;
         List<BoardResponse.DTO> popularList = boardService.getPopularList(sessionUser, getSize);
@@ -152,7 +141,7 @@ public class BoardController {
         } else {
             categoryList = categoryService.getMyFeedPopularList(3, user);
         }
-        BoardResponse.mainListDTO.PageDTO pageDTO = getPageDTO(boardDTOList, page, order, keyword);
+        BoardResponse.mainListDTO.PageDTO pageDTO = getPageDTO(boardDTOList, page, order);
         boardDTOList = !pageDTO.getIsLast() ? boardDTOList.subList(0, PER_PAGE) : boardDTOList;
         return BoardResponse.mainListDTO
                 .builder()
@@ -163,14 +152,13 @@ public class BoardController {
                 .build();
     }
 
-    private BoardResponse.mainListDTO.PageDTO getPageDTO(List<BoardResponse.DTO> boardDTOList, Integer page, String order, String keyword) {
+    private BoardResponse.mainListDTO.PageDTO getPageDTO(List<BoardResponse.DTO> boardDTOList, Integer page, String order) {
         boolean isFirst = page <= 1;
         boolean isLast = boardDTOList.size() <= PER_PAGE;
         return BoardResponse.mainListDTO.PageDTO.builder()
                 .isFirst(isFirst)
                 .isLast(isLast)
                 .page(page)
-                .keyword(keyword)
                 .order(safeOrder(order).name())
                 .build();
     }
