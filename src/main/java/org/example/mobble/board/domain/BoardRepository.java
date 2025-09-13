@@ -1,6 +1,7 @@
 package org.example.mobble.board.domain;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.example.mobble.board.dto.BoardResponse;
 import org.example.mobble.category.domain.Category;
@@ -58,14 +59,53 @@ public class BoardRepository {
         em.remove(em.find(Board.class, boardId));
     }
 
-    public List<BoardResponse.DTO> findAll(Integer userId, String orderBy, Integer firstIndex, Integer maxResult) {
-        String jpql = getBaseJpql(null, orderBy);
-        return mapping(
-                em.createQuery(jpql, Object[].class)
-                        .setParameter("userId", userId)
-                        .setFirstResult(firstIndex)
-                        .setMaxResults(maxResult)
-                        .getResultList());
+    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyCreateAt(Integer userId) {
+        return em.createQuery(
+                        "select " +
+                                "b, u, c, count(bm), count(distinct bm2) " +
+                                "from Board b " +
+                                "left join Bookmark bm on bm.board.id = b.id " +
+                                "left join b.bookmarks bm2 on bm2.user.id = :userId " +
+                                "left join Category c on c.id = b.category.id " +
+                                "left join User u on u.id = b.user.id " +
+                                "group by b, u, c "+
+                                "order by b.createdAt DESC ,b.id DESC "
+                        , BoardResponse.BoardANDCountDTO.class
+                )
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyViews(Integer userId) {
+        return em.createQuery(
+                        "select " +
+                                "b, u, c, count(bm), count(distinct bm2) " +
+                                "from Board b " +
+                                "left join Bookmark bm on bm.board.id = b.id " +
+                                "left join b.bookmarks bm2 on bm2.user.id = :userId " +
+                                "left join Category c on c.id = b.category.id " +
+                                "left join User u on u.id = b.user.id " +
+                                "group by b, u, c "+
+                                "order by b.views desc ,b.id DESC "
+                        , BoardResponse.BoardANDCountDTO.class
+                )
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyBookCount(Integer userId) {
+        return em.createQuery(
+                        "select " +
+                                "b, u, c, count(bm), count(distinct bm2) " +
+                                "from Board b " +
+                                "left join Bookmark bm on bm.board.id = b.id " +
+                                "left join b.bookmarks bm2 on bm2.user.id = :userId " +
+                                "left join Category c on c.id = b.category.id " +
+                                "left join User u on u.id = b.user.id " +
+                                "group by b, u, c "+
+                                "order by (select count(bm) from b.bookmarks where bm2.board = b) desc,b.id desc "
+                        , BoardResponse.BoardANDCountDTO.class
+                )
+                .setParameter("userId", userId)
+                .getResultList();
     }
 
     /* ------------------------ private logic part ------------------------ */
@@ -126,4 +166,6 @@ public class BoardRepository {
                         .setMaxResults(maxResult)
                         .getResultList());
     }
+
+
 }

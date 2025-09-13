@@ -44,12 +44,11 @@ public class BoardController {
 
     // 모든 게시물 목록 찾기
     @GetMapping
-    public String getBoardsList(HttpServletRequest request, @RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "CREATED_AT_DESC") String order) {
+    public String getBoardsList(HttpServletRequest request,
+                                @RequestParam(defaultValue = "CREATED_AT_DESC") String sort) {
         User user = getSessionUser();
-        System.out.println("[LOGIN] sessionId=" + session.getId() + ", user=" + user.getUsername());
-        List<BoardResponse.DTO> boardDTOList = boardService.getList(user, getFirstIndex(page), PER_PAGE + 1, safeOrder(order));
-        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, page, order, null);
-        request.setAttribute("model", resDTO);
+        BoardResponse.BoardListDTO reqDTO = boardService.getList(user,sort);
+        request.setAttribute("model", reqDTO);
         return "board/list-page";
     }
 
@@ -93,14 +92,14 @@ public class BoardController {
 
 
     // 모든 게시물 목록 찾기
-    @GetMapping("/me")
-    public String getMyFeedList(HttpServletRequest request, BoardRequest.MyFeedDTO reqDTO) {
-        User user = getSessionUser();
-        List<BoardResponse.DTO> boardDTOList = boardService.getMyFeedList(getFirstIndex(reqDTO.getPage()), PER_PAGE + 1, safeOrder(reqDTO.getOrder()), user);
-        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, reqDTO.getPage(), reqDTO.getOrder(), user);
-        request.setAttribute("model", resDTO);
-        return "board/myfeed-page";
-    }
+//    @GetMapping("/me")
+//    public String getMyFeedList(HttpServletRequest request, BoardRequest.MyFeedDTO reqDTO) {
+//        User user = getSessionUser();
+//        List<BoardResponse.DTO> boardDTOList = boardService.getMyFeedList(getFirstIndex(reqDTO.getPage()), PER_PAGE + 1, safeOrder(reqDTO.getOrder()), user);
+//        BoardResponse.mainListDTO resDTO = getMainList(boardDTOList, reqDTO.getPage(), reqDTO.getOrder(), user);
+//        request.setAttribute("model", resDTO);
+//        return "board/myfeed-page";
+//    }
 
 
 
@@ -131,26 +130,26 @@ public class BoardController {
      * request에 page, nextPage, prevPage도 함께 심습니다.
      */
 
-    private BoardResponse.mainListDTO getMainList(List<BoardResponse.DTO> boardDTOList, Integer page, String order, User user) {
-        User sessionUser = getSessionUser();
-        int getSize = 3;
-        List<BoardResponse.DTO> popularList = boardService.getPopularList(sessionUser, getSize);
-        List<String> categoryList;
-        if (user == null) {
-            categoryList = categoryService.getPopularList(3);
-        } else {
-            categoryList = categoryService.getMyFeedPopularList(3, user);
-        }
-        BoardResponse.mainListDTO.PageDTO pageDTO = getPageDTO(boardDTOList, page, order);
-        boardDTOList = !pageDTO.getIsLast() ? boardDTOList.subList(0, PER_PAGE) : boardDTOList;
-        return BoardResponse.mainListDTO
-                .builder()
-                .boardList(boardDTOList)
-                .popularList(popularList)
-                .categoryList(categoryList)
-                .pageDTO(pageDTO)
-                .build();
-    }
+//    private BoardResponse.mainListDTO getMainList(List<BoardResponse.DTO> boardDTOList, Integer page, String order, User user) {
+//        User sessionUser = getSessionUser();
+//        int getSize = 3;
+//        List<BoardResponse.DTO> popularList = boardService.getPopularList(sessionUser, getSize);
+//        List<String> categoryList;
+//        if (user == null) {
+//            categoryList = categoryService.getPopularList(3);
+//        } else {
+//            categoryList = categoryService.getMyFeedPopularList(3, user);
+//        }
+//        BoardResponse.mainListDTO.PageDTO pageDTO = getPageDTO(boardDTOList, page, order);
+//        boardDTOList = !pageDTO.getIsLast() ? boardDTOList.subList(0, PER_PAGE) : boardDTOList;
+//        return BoardResponse.mainListDTO
+//                .builder()
+//                .boardList(boardDTOList)
+//                .popularList(popularList)
+//                .categoryList(categoryList)
+//                .pageDTO(pageDTO)
+//                .build();
+//    }
 
     private BoardResponse.mainListDTO.PageDTO getPageDTO(List<BoardResponse.DTO> boardDTOList, Integer page, String order) {
         boolean isFirst = page <= 1;

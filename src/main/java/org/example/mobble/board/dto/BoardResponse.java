@@ -1,5 +1,6 @@
 package org.example.mobble.board.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import org.example.mobble.user.domain.User;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BoardResponse {
     @Data
@@ -151,6 +153,56 @@ public class BoardResponse {
             this.resultEtc = report.getResultEtc();
             this.userId = report.getUser().getId();
             this.boardId = report.getBoard().getId();
+        }
+    }
+
+    @Data
+    public static class BoardListDTO {
+        private List<BoardDTO> boardList;
+
+        public BoardListDTO(List<BoardANDCountDTO> dtoList) {
+            this.boardList = dtoList.stream()
+                    .map(BoardDTO::new)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class BoardANDCountDTO {
+        private Board board;
+        private User user;
+        private Category category;
+        private Long bookmarkCount;
+        private Long myCount; // 북마크 여부 숫자, 나중에 Boolean으로 변환
+    }
+
+    @Data
+    public static class BoardDTO {
+        private Integer id;
+        private String username;
+        private String title;
+        private String content;
+        private Integer views;
+        private String category;
+        private String createAt;
+        private String image;
+        private Long bookmarkCount;
+        private Boolean isBookmark; // Boolean으로 변경
+
+        public BoardDTO(BoardANDCountDTO dto) {
+            Board board = dto.getBoard();
+            this.id = board.getId();
+            this.username = dto.getUser().getUsername();
+            this.title = board.getTitle();
+            this.content = board.getContent();
+            this.views = board.getViews();
+            this.category = dto.getCategory().getCategory();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            this.createAt = board.getCreatedAt().toLocalDateTime().format(formatter);
+            this.image = null;
+            this.bookmarkCount = dto.getBookmarkCount();
+            this.isBookmark = dto.getMyCount() > 0; // 숫자 → Boolean 변환
         }
     }
 }

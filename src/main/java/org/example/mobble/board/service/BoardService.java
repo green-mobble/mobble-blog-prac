@@ -9,10 +9,12 @@ import org.example.mobble._util.error.ex.Exception404;
 import org.example.mobble._util.util.HtmlUtil;
 import org.example.mobble._util.util.ImgUtil;
 import org.example.mobble.board.domain.Board;
+import org.example.mobble.board.domain.BoardListSortType;
 import org.example.mobble.board.domain.BoardRepository;
 import org.example.mobble.board.domain.SearchOrderCase;
 import org.example.mobble.board.dto.BoardRequest;
 import org.example.mobble.board.dto.BoardResponse;
+import org.example.mobble.bookmark.domain.BookmarkSortType;
 import org.example.mobble.category.domain.Category;
 import org.example.mobble.category.domain.CategoryRepository;
 import org.example.mobble.report.domain.Report;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 @RequiredArgsConstructor
 @Service
 public class BoardService {
@@ -34,9 +37,16 @@ public class BoardService {
     private final ReportRepository reportRepository;
 
     @Transactional(readOnly = true)
-    public List<BoardResponse.DTO> getList(User user, int firstIndex, int size, SearchOrderCase order) {
-        String orderBy = orderByToString(order);
-        return boardRepository.findAll(user.getId(), orderBy, firstIndex, size);
+    public BoardResponse.BoardListDTO getList(User user,String sort) {
+        BoardListSortType sortType =BoardListSortType.valueOf(sort);
+        List<BoardResponse.BoardANDCountDTO> boards;
+        switch (sortType) {
+            case CREATED_AT_DESC -> boards = boardRepository.findAllOrderbyCreateAt(user.getId());
+            case VIEW_COUNT_DESC -> boards = boardRepository.findAllOrderbyViews(user.getId());
+            case BOOKMARK_COUNT_DESC -> boards = boardRepository.findAllOrderbyBookCount(user.getId());
+            default -> boards = boardRepository.findAllOrderbyViews(user.getId());
+        }
+        return new BoardResponse.BoardListDTO(boards);
     }
 
     @Transactional(readOnly = true)
@@ -187,10 +197,10 @@ public class BoardService {
         return orderColumn + " " + direction + ", b.id desc";
     }
 
-    @Transactional(readOnly = true)
-    public List<BoardResponse.DTO> getPopularList(User user, int size) {
-        return getList(user, 0, size, SearchOrderCase.VIEW_COUNT_DESC);
-    }
+//    @Transactional(readOnly = true)
+//    public List<BoardResponse.DTO> getPopularList(User user, int size) {
+//        return getList(user, 0, size, SearchOrderCase.VIEW_COUNT_DESC);
+//    }
 
 
     //마이 피드 list

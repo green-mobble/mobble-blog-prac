@@ -33,128 +33,95 @@
 <script src="/js/search-clear.js" defer></script>
 <script src="/js/footer.js" defer></script>
 <main class="feed-container">
-    {{#model}}
-        <!-- 좌측 피드 -->
-        <section class="feed-left">
-            <h2>피드</h2>
-            <h3>HOT TOPIC</h3>
-            <div class="feed-sorting">
-                <a href="/boards?order=CREATED_AT_DESC&page=1">최신순</a> | <a
-                    href="/boards?order=VIEW_COUNT_DESC&page=1">조회수순</a>
-                | <a
-                    href="/boards?order=BOOKMARK_COUNT_DESC&page=1">북마크순</a>
-            </div>
+    <!-- 좌측 피드 -->
+    <section class="feed-left">
+        <h2>피드</h2>
+        <h3>HOT TOPIC</h3>
+        <div class="feed-sorting">
+            <a href="/boards?sort=CREATED_AT_DESC">최신순</a> | <a
+                href="/boards?sort=VIEW_COUNT_DESC">조회수순</a>
+            | <a
+                href="/boards?sort=BOOKMARK_COUNT_DESC">북마크순</a>
+        </div>
 
-            <!-- 글 카드 1 -->
-            {{#boardList}}
-                <article class="post-card">
-                    <a class="post-link" href="/boards/{{id}}">
-                        <div class="thumb" aria-hidden="true">
-                            {{#image}}<img src="{{image}}" alt="thumbnail"/>{{/image}}
-                        </div>
-                        <div class="post-body">
-                            <div class="tags">#{{category}}</div>
-                            <h4 class="title">{{title}}</h4>
-                            <div class="tags">{{username}}</div>
-                            <p class="excerpt">
-                                {{content}}
-                            </p>
-                            <div class="meta">
-                                <span>{{createAt}}</span>
-                                <span><i class="fa-regular fa-eye"></i> {{views}}</span>
-                                <span>
+        <!-- 글 카드 1 -->
+        {{#model.boardList}}
+            <article class="post-card">
+                <a class="post-link" href="/boards/{{id}}">
+                    <div class="thumb" aria-hidden="true">
+                        {{#image}}<img src="{{image}}" alt="thumbnail"/>{{/image}}
+                    </div>
+                    <div class="post-body">
+                        <div class="tags">#{{category}}</div>
+                        <h4 class="title">{{title}}</h4>
+                        <div class="tags">{{username}}</div>
+                        <p class="excerpt">
+                            {{content}}
+                        </p>
+                        <div class="meta">
+                            <span>{{createAt}}</span>
+                            <span><i class="fa-regular fa-eye"></i> {{views}}</span>
+                            <span>
                                     {{#isBookmark}}
                                         <i class="fa-solid fa-bookmark"></i>
                                     {{/isBookmark}}
-                                    {{^isBookmark}}
-                                        <i class="fa-regular fa-bookmark"></i>
-                                    {{/isBookmark}}
-                                    {{bookmarkCount}}
+                                {{^isBookmark}}
+                                    <i class="fa-regular fa-bookmark"></i>
+                                {{/isBookmark}}
+                                {{bookmarkCount}}
                                 </span>
-                            </div>
                         </div>
-                    </a>
-                </article>
-            {{/boardList}}
-            <!--        &lt;!&ndash; 글 카드 2 &ndash;&gt;-->
-            <!--        <article class="post-card">-->
-            <!--            <a class="post-link" href="/boards/1">-->
-            <!--                <div class="thumb" aria-hidden="true"></div>-->
-            <!--                <div class="post-body">-->
-            <!--                    <div class="tags">#태그 #태그 #태그</div>-->
-            <!--                    <h4 class="title">제목2</h4>-->
-            <!--                    <p class="excerpt">-->
-            <!--                        Lorem ipsum dolor sit amet consectetur. Ut fermentum ut nunc-->
-            <!--                        sed.-->
-            <!--                    </p>-->
-            <!--                    <div class="meta">-->
-            <!--                        <span>2025.09.04</span>-->
-            <!--                        <span>💬 14</span>-->
-            <!--                        <span>👍 57</span>-->
-            <!--                    </div>-->
-            <!--                </div>-->
-            <!--            </a>-->
-            <!--        </article>-->
+                    </div>
+                </a>
+            </article>
+        {{/model.boardList}}
+        <!--        &lt;!&ndash; 글 카드 2 &ndash;&gt;-->
+        <!--        <article class="post-card">-->
+        <!--            <a class="post-link" href="/boards/1">-->
+        <!--                <div class="thumb" aria-hidden="true"></div>-->
+        <!--                <div class="post-body">-->
+        <!--                    <div class="tags">#태그 #태그 #태그</div>-->
+        <!--                    <h4 class="title">제목2</h4>-->
+        <!--                    <p class="excerpt">-->
+        <!--                        Lorem ipsum dolor sit amet consectetur. Ut fermentum ut nunc-->
+        <!--                        sed.-->
+        <!--                    </p>-->
+        <!--                    <div class="meta">-->
+        <!--                        <span>2025.09.04</span>-->
+        <!--                        <span>💬 14</span>-->
+        <!--                        <span>👍 57</span>-->
+        <!--                    </div>-->
+        <!--                </div>-->
+        <!--            </a>-->
+        <!--        </article>-->
 
-            <!-- 페이징 -->
-            <div class="pagination">
-                {{#pageDTO}}
-                    {{^isFirst}}
-                        <a href="/boards{{queryString}}&page={{prev}}">&lt;prev</a>
-                    {{/isFirst}}
-                    {{^isLast}}
-                        <a href="/boards{{queryString}}&page={{next}}">next&gt;</a>
-                    {{/isLast}}
-                {{/pageDTO}}
-            </div>
-        </section>
+        <!-- 페이징 -->
+        <div class="pagination">
+            <a href="/boards{{queryString}}&page={{prev}}">&lt;prev</a>
+            <a href="/boards{{queryString}}&page={{next}}">next&gt;</a>
+        </div>
+    </section>
 
-        <!-- 우측 인기글 -->
+    <!-- 우측 인기글 -->
 
-        <aside class="feed-right">
-            <h3>인기글</h3>
-            <ul class="popular-list">
-                {{#popularList}}
-                    <li class="popular-item">
-                        <a class="popular-link" href="/boards/{{id}}">
-                            <div class="thumb small" aria-hidden="true">
-                                {{#image}}<img src="{{image}}" alt="thumbnail"/>{{/image}}
-                            </div>
-                            <div class="info">
-                                <span class="author">{{username}}</span>
-                                <h4 class="title">{{title}}</h4>
-                                <p class="excerpt">
-                                </p>
-                                <div class="meta">
-                                    <span>{{createAt}}</span>
-                                    <span><i class="fa-regular fa-eye"></i> {{views}}</span>
-                                    {{#isBookmark}}
-                                        <i class="fa-solid fa-bookmark"></i>
-                                    {{/isBookmark}}
-                                    {{^isBookmark}}
-                                        <i class="fa-regular fa-bookmark"></i>
-                                    {{/isBookmark}}
-                                    {{bookmarkCount}}
-                                </div>
-                            </div>
-                        </a>
-                    </li>
-                {{/popularList}}
-                <!--                    <li class="popular-item">-->
-                <!--                        <a class="popular-link" href="/boards/1">-->
-                <!--                            <div class="thumb small" aria-hidden="true"></div>-->
-                <!--                            <div class="info">-->
-                <!--                                <span class="author">cos</span>-->
-                <!--                                <h4 class="title">제목2</h4>-->
-                <!--                                <div class="meta">-->
-                <!--                                    <span>2025.09.04</span><span>💬 12</span><span>👍 80</span>-->
-                <!--                                </div>-->
-                <!--                            </div>-->
-                <!--                        </a>-->
-                <!--                    </li>-->
-            </ul>
-        </aside>
-    {{/model}}
+    <aside class="feed-right">
+        <h3>인기글</h3>
+        <ul class="popular-list">
+
+            <!--                    <li class="popular-item">-->
+            <!--                        <a class="popular-link" href="/boards/1">-->
+            <!--                            <div class="thumb small" aria-hidden="true"></div>-->
+            <!--                            <div class="info">-->
+            <!--                                <span class="author">cos</span>-->
+            <!--                                <h4 class="title">제목2</h4>-->
+            <!--                                <div class="meta">-->
+            <!--                                    <span>2025.09.04</span><span>💬 12</span><span>👍 80</span>-->
+            <!--                                </div>-->
+            <!--                            </div>-->
+            <!--                        </a>-->
+            <!--                    </li>-->
+        </ul>
+    </aside>
 </main>
 </body>
 </html>
