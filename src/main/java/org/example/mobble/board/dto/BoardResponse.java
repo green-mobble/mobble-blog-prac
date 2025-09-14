@@ -28,18 +28,45 @@ public class BoardResponse {
             Boolean isLast;
             Integer prev;
             Integer next;
+
+            // ✅ 검색 파라미터 유지용
             String queryString;
+            String keyword;   // ✅ 추가
+            String key;       // ✅ 추가
 
             @Builder
-            public PageDTO(Integer page, Boolean isFirst, Boolean isLast, String order) {
+            public PageDTO(Integer page,
+                           Boolean isFirst,
+                           Boolean isLast,
+                           String order,
+                           String keyword,   // ✅ 추가
+                           String key) {     // ✅ 추가
                 this.page = page;
                 this.isFirst = isFirst;
                 this.isLast = isLast;
                 this.prev = !isFirst ? page - 1 : page;
                 this.next = !isLast ? page + 1 : page;
-                this.queryString = "?order=" + order;
+
+                // ✅ 필드에 저장 (원하면 화면에서 {{pageDTO.keyword}}도 쓸 수 있음)
+                this.keyword = keyword;
+                this.key = key;
+
+                // ✅ 쿼리스트링 생성 (중복 대입 제거, 공백만 간단 인코딩)
+                StringBuilder qs = new StringBuilder("?order=").append(order);
+                if (keyword != null && !keyword.isBlank()) {
+                    qs.append("&keyword=").append(encode(keyword));
+                }
+                if (key != null && !key.isBlank()) {
+                    qs.append("&key=").append(key);
+                }
+                this.queryString = qs.toString();
             }
+
+            // 간단 인코딩(공백 처리). 필요하면 URLEncoder로 교체 가능.
+            private String encode(String v) { return v.replace(" ", "%20"); }
         }
+
+
 
         @Builder
         public mainListDTO(List<DTO> boardList, List<DTO> popularList, List<String> categoryList, PageDTO pageDTO) {
@@ -48,6 +75,8 @@ public class BoardResponse {
             this.categoryList = categoryList;
             this.pageDTO = pageDTO;
         }
+
+
     }
 
     // 팀원 간 컨벤션 토의
@@ -153,4 +182,6 @@ public class BoardResponse {
             this.boardId = report.getBoard().getId();
         }
     }
+
+
 }

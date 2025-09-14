@@ -10,6 +10,7 @@ import org.example.mobble._util.util.HtmlUtil;
 import org.example.mobble._util.util.ImgUtil;
 import org.example.mobble.board.domain.Board;
 import org.example.mobble.board.domain.BoardRepository;
+import org.example.mobble.board.domain.SearchKey;
 import org.example.mobble.board.domain.SearchOrderCase;
 import org.example.mobble.board.dto.BoardRequest;
 import org.example.mobble.board.dto.BoardResponse;
@@ -163,6 +164,31 @@ public class BoardService {
                 () -> new Exception404(ErrorEnum.NOT_FOUND_BOARD)
         );
     }
+
+    @Transactional(readOnly = true)
+    public List<BoardResponse.DTO> searchList(
+            User user,
+            int firstIndex,
+            int size,
+            SearchOrderCase order,
+            SearchKey key,
+            String keyword
+    ) {
+        String orderBy = orderByToString(order);
+
+        boolean needsBookmarkAggregation =
+                order == SearchOrderCase.BOOKMARK_COUNT_ASC || order == SearchOrderCase.BOOKMARK_COUNT_DESC;
+
+        if (needsBookmarkAggregation) {
+            return boardRepository.searchWithBookmarkOrder(
+                    user.getId(), key, keyword, orderBy, firstIndex, size
+            );
+        }
+        return boardRepository.searchSimple(
+                user.getId(), key, keyword, orderBy, firstIndex, size
+        );
+    }
+
 
     /*                             private logic part
      * ----------------------------------------------------------------------------------
