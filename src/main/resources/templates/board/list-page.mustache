@@ -97,8 +97,13 @@
 
         <!-- 페이징 -->
         <div class="pagination">
-            <a href="/boards{{queryString}}&page={{prev}}">&lt;prev</a>
-            <a href="/boards{{queryString}}&page={{next}}">next&gt;</a>
+            {{^model.isFirst}}
+                <a href="/boards?&page={{model.prev}}&sort={{currentSort}}">prev</a>
+            {{/model.isFirst}}
+
+            {{^model.isLast}}
+                <a href="/boards?&page={{model.next}}&sort={{currentSort}}">next</a>
+            {{/model.isLast}}
         </div>
     </section>
 

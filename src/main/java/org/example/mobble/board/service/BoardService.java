@@ -37,16 +37,16 @@ public class BoardService {
     private final ReportRepository reportRepository;
 
     @Transactional(readOnly = true)
-    public BoardResponse.BoardListDTO getList(User user,String sort) {
+    public BoardResponse.BoardListDTO getList(User user,String sort,Integer page,Integer size) {
         BoardListSortType sortType =BoardListSortType.valueOf(sort);
         List<BoardResponse.BoardANDCountDTO> boards;
         switch (sortType) {
-            case CREATED_AT_DESC -> boards = boardRepository.findAllOrderbyCreateAt(user.getId());
-            case VIEW_COUNT_DESC -> boards = boardRepository.findAllOrderbyViews(user.getId());
-            case BOOKMARK_COUNT_DESC -> boards = boardRepository.findAllOrderbyBookCount(user.getId());
-            default -> boards = boardRepository.findAllOrderbyViews(user.getId());
+            case CREATED_AT_DESC -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size);
+            case VIEW_COUNT_DESC -> boards = boardRepository.findAllOrderbyViews(user.getId(),page,size);
+            case BOOKMARK_COUNT_DESC -> boards = boardRepository.findAllOrderbyBookCount(user.getId(),page,size);
+            default -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size);
         }
-        return new BoardResponse.BoardListDTO(boards);
+        return new BoardResponse.BoardListDTO(boards,page,size,boardRepository.boardTotalCount());
     }
 
     @Transactional(readOnly = true)

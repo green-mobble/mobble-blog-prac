@@ -59,7 +59,7 @@ public class BoardRepository {
         em.remove(em.find(Board.class, boardId));
     }
 
-    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyCreateAt(Integer userId) {
+    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyCreateAt(Integer userId,Integer page,Integer size) {
         return em.createQuery(
                         "select " +
                                 "b, u, c, count(bm), count(distinct bm2) " +
@@ -73,9 +73,11 @@ public class BoardRepository {
                         , BoardResponse.BoardANDCountDTO.class
                 )
                 .setParameter("userId", userId)
+                .setFirstResult(page*size)
+                .setMaxResults(size)
                 .getResultList();
     }
-    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyViews(Integer userId) {
+    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyViews(Integer userId,Integer page,Integer size) {
         return em.createQuery(
                         "select " +
                                 "b, u, c, count(bm), count(distinct bm2) " +
@@ -89,9 +91,11 @@ public class BoardRepository {
                         , BoardResponse.BoardANDCountDTO.class
                 )
                 .setParameter("userId", userId)
+                .setFirstResult(page*size)
+                .setMaxResults(size)
                 .getResultList();
     }
-    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyBookCount(Integer userId) {
+    public List<BoardResponse.BoardANDCountDTO> findAllOrderbyBookCount(Integer userId,Integer page,Integer size) {
         return em.createQuery(
                         "select " +
                                 "b, u, c, count(bm), count(distinct bm2) " +
@@ -105,7 +109,14 @@ public class BoardRepository {
                         , BoardResponse.BoardANDCountDTO.class
                 )
                 .setParameter("userId", userId)
+                .setFirstResult(page*size)
+                .setMaxResults(size)
                 .getResultList();
+    }
+
+    public Long boardTotalCount() {
+        return (Long) em.createQuery("select count(b.id) from Board b")
+                .getSingleResult();
     }
 
     /* ------------------------ private logic part ------------------------ */
@@ -166,6 +177,7 @@ public class BoardRepository {
                         .setMaxResults(maxResult)
                         .getResultList());
     }
+
 
 
 }

@@ -159,11 +159,28 @@ public class BoardResponse {
     @Data
     public static class BoardListDTO {
         private List<BoardDTO> boardList;
+        private Integer prev;
+        private Integer next;
+        private Integer current;
+        private Integer totalcount;
+        private Integer totalpage;
+        private Integer size;
+        private Boolean isFirst;
+        private Boolean isLast;
 
-        public BoardListDTO(List<BoardANDCountDTO> dtoList) {
+        public BoardListDTO(List<BoardANDCountDTO> dtoList,Integer current,Integer boardSize,long totalcount) {
             this.boardList = dtoList.stream()
                     .map(BoardDTO::new)
                     .collect(Collectors.toList());
+            this.current = current;
+            this.size = boardSize;
+            this.totalcount = (int) totalcount;
+            this.totalpage = makeTotalPage((int) totalcount,boardSize);
+
+            this.prev = current -1;
+            this.next = current +1;
+            this.isFirst = current == 0;
+            this.isLast =current >= totalpage -1;
         }
     }
 
@@ -204,5 +221,8 @@ public class BoardResponse {
             this.bookmarkCount = dto.getBookmarkCount();
             this.isBookmark = dto.getMyCount() > 0; // 숫자 → Boolean 변환
         }
+    }
+    private static Integer makeTotalPage(int totalCount, int size) {
+        return totalCount / size + (totalCount % size == 0 ? 0 : 1);
     }
 }

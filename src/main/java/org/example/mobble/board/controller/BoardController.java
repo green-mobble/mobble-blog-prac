@@ -27,6 +27,7 @@ public class BoardController {
     private final BoardService boardService;
     private final HttpSession session;
     private final CategoryService categoryService;
+    private final Integer size = 10;
 
     //게시글 저장 페이지 이동
     @GetMapping("/save-form")
@@ -45,9 +46,11 @@ public class BoardController {
     // 모든 게시물 목록 찾기
     @GetMapping
     public String getBoardsList(HttpServletRequest request,
-                                @RequestParam(defaultValue = "CREATED_AT_DESC") String sort) {
+                                @RequestParam(defaultValue = "CREATED_AT_DESC") String sort,
+                                @RequestParam(defaultValue = "0") Integer page) {
         User user = getSessionUser();
-        BoardResponse.BoardListDTO reqDTO = boardService.getList(user,sort);
+        BoardResponse.BoardListDTO reqDTO = boardService.getList(user,sort,page,size);
+        request.setAttribute("currentSort",sort);
         request.setAttribute("model", reqDTO);
         return "board/list-page";
     }
