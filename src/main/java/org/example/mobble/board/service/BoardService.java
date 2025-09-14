@@ -14,7 +14,6 @@ import org.example.mobble.board.domain.BoardRepository;
 import org.example.mobble.board.domain.SearchOrderCase;
 import org.example.mobble.board.dto.BoardRequest;
 import org.example.mobble.board.dto.BoardResponse;
-import org.example.mobble.bookmark.domain.BookmarkSortType;
 import org.example.mobble.category.domain.Category;
 import org.example.mobble.category.domain.CategoryRepository;
 import org.example.mobble.report.domain.Report;
@@ -47,6 +46,26 @@ public class BoardService {
             default -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size);
         }
         return new BoardResponse.BoardListDTO(boards,page,size,boardRepository.boardTotalCount());
+    }
+    // 키워드
+    @Transactional
+    public BoardResponse.BoardListSearchDTO getSearchBoardList(User user, String keyword, String sort,Integer page, Integer size) {
+        BoardListSortType sortType = BoardListSortType.valueOf(sort);
+        List<BoardResponse.BoardANDCountDTO> searchBoardList;
+
+        switch (sortType) {
+            case CREATED_AT_DESC ->
+                    searchBoardList = boardRepository.findSearchBoardListOrderbyCreateAt(user.getId(), keyword, page, size);
+            case VIEW_COUNT_DESC ->
+                    searchBoardList = boardRepository.findSearchBoardListOrderbyViews(user.getId(), keyword, page, size);
+            case BOOKMARK_COUNT_DESC ->
+                    searchBoardList = boardRepository.findSearchBoardListOrderbyBookCount(user.getId(), keyword, page, size);
+            default ->
+                    searchBoardList = boardRepository.findSearchBoardListOrderbyCreateAt(user.getId(), keyword, page, size);
+        }
+
+        long totalCount = boardRepository.boardSearchTotalCount(keyword);
+        return new BoardResponse.BoardListSearchDTO(searchBoardList, page, size, totalCount);
     }
 
     @Transactional(readOnly = true)
@@ -186,7 +205,7 @@ public class BoardService {
         if (boardId == null) throw new Exception400(ErrorEnum.BAD_REQUEST_NO_EXISTS_BOARD_ID);
     }
 
-    // 🔢 정렬 컬럼 결정 (bookmarkCount는 count(bm))
+    //  정렬 컬럼 결정 (bookmarkCount는 count(bm))
     private String orderByToString(SearchOrderCase order) {
         String orderColumn = switch (order) {
             case VIEW_COUNT_ASC, VIEW_COUNT_DESC -> "b.views";
@@ -209,4 +228,6 @@ public class BoardService {
         String orderBy = orderByToString(order);
         return boardRepository.findAllByUserId(orderBy, firstIndex, size, user);
     }
+
+
 }

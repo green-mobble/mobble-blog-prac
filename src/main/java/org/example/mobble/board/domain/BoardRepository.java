@@ -113,9 +113,81 @@ public class BoardRepository {
                 .setMaxResults(size)
                 .getResultList();
     }
+    public List<BoardResponse.BoardANDCountDTO> findSearchBoardListOrderbyCreateAt(Integer userId,String keyword,Integer page,Integer size) {
+        return em.createQuery(
+                        "select " +
+                                "b, u, c, count(bm), count(distinct bm2) " +
+                                "from Board b " +
+                                "left join Bookmark bm on bm.board.id = b.id " +
+                                "left join b.bookmarks bm2 on bm2.user.id = :userId " +
+                                "left join Category c on c.id = b.category.id " +
+                                "left join User u on u.id = b.user.id " +
+                                "where b.title like :keyword " +
+                                "group by b, u, c "+
+                                "order by b.createdAt DESC ,b.id DESC "
+                        , BoardResponse.BoardANDCountDTO.class
+                )
+                .setParameter("userId", userId)
+                .setParameter("keyword", "%" + keyword + "%")
+                .setFirstResult(page*size)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
+    public List<BoardResponse.BoardANDCountDTO> findSearchBoardListOrderbyViews(Integer userId,String keyword,Integer page,Integer size) {
+        return em.createQuery(
+                        "select " +
+                                "b, u, c, count(bm), count(distinct bm2) " +
+                                "from Board b " +
+                                "left join Bookmark bm on bm.board.id = b.id " +
+                                "left join b.bookmarks bm2 on bm2.user.id = :userId " +
+                                "left join Category c on c.id = b.category.id " +
+                                "left join User u on u.id = b.user.id " +
+                                "where b.title like :keyword " +
+                                "group by b, u, c "+
+                                "order by b.views desc ,b.id DESC "
+                        , BoardResponse.BoardANDCountDTO.class
+                )
+                .setParameter("userId", userId)
+                .setParameter("keyword", "%" + keyword + "%")
+                .setFirstResult(page*size)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
+    public List<BoardResponse.BoardANDCountDTO> findSearchBoardListOrderbyBookCount(Integer userId,String keyword,Integer page,Integer size) {
+        return em.createQuery(
+                        "select " +
+                                "b, u, c, count(bm), count(distinct bm2) " +
+                                "from Board b " +
+                                "left join Bookmark bm on bm.board.id = b.id " +
+                                "left join b.bookmarks bm2 on bm2.user.id = :userId " +
+                                "left join Category c on c.id = b.category.id " +
+                                "left join User u on u.id = b.user.id " +
+                                "where b.title like :keyword " +
+                                "group by b, u, c "+
+                                "order by (select count(bm) from b.bookmarks where bm2.board = b) desc,b.id desc "
+                        , BoardResponse.BoardANDCountDTO.class
+                )
+                .setParameter("userId", userId)
+                .setParameter("keyword", "%" + keyword + "%")
+                .setFirstResult(page*size)
+                .setMaxResults(size)
+                .getResultList();
+    }
 
     public Long boardTotalCount() {
         return (Long) em.createQuery("select count(b.id) from Board b")
+                .getSingleResult();
+    }
+
+    public Long boardSearchTotalCount(String keyword) {
+        return (Long) em.createQuery(
+                        "select count(b.id) " +
+                                "from Board b " +
+                                "where b.title like :keyword"
+                )
+                .setParameter("keyword", "%" + keyword + "%")
                 .getSingleResult();
     }
 
