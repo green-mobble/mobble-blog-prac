@@ -39,10 +39,12 @@
             <h2>피드</h2>
             <h3>HOT TOPIC</h3>
             <div class="feed-sorting">
-                <a href="/boards?order=CREATED_AT_DESC&page=1">최신순</a> | <a
-                    href="/boards?order=VIEW_COUNT_DESC&page=1">조회수순</a>
-                | <a
-                    href="/boards?order=BOOKMARK_COUNT_DESC&page=1">북마크순</a>
+                {{#pageDTO}}
+                <a href="/boards?order=CREATED_AT_DESC&page=1{{#keyword}}&keyword={{keyword}}{{/keyword}}{{#key}}&key={{key}}{{/key}}">최신순</a> |
+                        <a href="/boards?order=VIEW_COUNT_DESC&page=1{{#keyword}}&keyword={{keyword}}{{/keyword}}{{#key}}&key={{key}}{{/key}}">조회수순</a> |
+                        <a href="/boards?order=BOOKMARK_COUNT_DESC&page=1{{#keyword}}&keyword={{keyword}}{{/keyword}}{{#key}}&key={{key}}{{/key}}">북마크순</a>
+                {{/pageDTO}}
+
             </div>
 
             <!-- 글 카드 1 -->

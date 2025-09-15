@@ -68,44 +68,29 @@ public class BoardRepository {
                         .getResultList());
     }
 
-    public List<BoardResponse.DTO> searchSimple(
-            Integer loginUserId,
-            SearchKey key,
-            String keyword,
-            String orderBy,
-            int firstIndex,
-            int maxResult
+    public List<BoardResponse.DTO> search(
+            Integer loginUserId, SearchKey key, String keyword,
+            String orderBy, int firstIndex, int maxResult
     ) {
-        String where = buildSearchWhere(key, keyword);
-        String jpql = getBaseJpql(where, orderBy);
-        var q = em.createQuery(jpql, Object[].class)
-                .setParameter("userId", loginUserId).setFirstResult(firstIndex).setMaxResults(maxResult);
-
-        bindKeyword(q, keyword);
-        return mapping(q.getResultList());
-    }
-
-    // 4-2) 북마크 수 정렬(집계 필요) – 이미 group by 걸려 있으니 orderByToString이 count(bm) 주는 방식 유지
-    public List<BoardResponse.DTO> searchWithBookmarkOrder(
-            Integer loginUserId,
-            SearchKey key,
-            String keyword,
-            String orderBy,
-            int firstIndex,
-            int maxResult
-    ) {
+        // 1) 키워드/키에 맞는 WHERE절 생성
         String where = buildSearchWhere(key, keyword);
 
+        // 2) 공통 JPQL 생성 (join, group by는 항상 동일)
         String jpql = getBaseJpql(where, orderBy);
 
+        // 3) 파라미터/페이징 바인딩
         var q = em.createQuery(jpql, Object[].class)
-                .setParameter("userId", loginUserId)
+                .setParameter("userId", loginUserId) // "내 북마크 여부" 판단용
                 .setFirstResult(firstIndex)
                 .setMaxResults(maxResult);
 
+        // 4) 키워드 바인딩 (title은 lower(), content는 raw 등 내부 정책 유지)
         bindKeyword(q, keyword);
+
+        // 5) 공통 매핑 -> DTO 리스트
         return mapping(q.getResultList());
     }
+
 
     /* ------------------------ private logic part ------------------------ */
 

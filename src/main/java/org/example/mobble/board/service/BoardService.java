@@ -176,17 +176,10 @@ public class BoardService {
     ) {
         String orderBy = orderByToString(order);
 
-        boolean needsBookmarkAggregation =
-                order == SearchOrderCase.BOOKMARK_COUNT_ASC || order == SearchOrderCase.BOOKMARK_COUNT_DESC;
-
-        if (needsBookmarkAggregation) {
-            return boardRepository.searchWithBookmarkOrder(
-                    user.getId(), key, keyword, orderBy, firstIndex, size
-            );
-        }
-        return boardRepository.searchSimple(
+        return boardRepository.search(
                 user.getId(), key, keyword, orderBy, firstIndex, size
         );
+
     }
 
 
