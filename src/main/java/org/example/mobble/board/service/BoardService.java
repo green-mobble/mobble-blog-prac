@@ -36,37 +36,18 @@ public class BoardService {
     private final ReportRepository reportRepository;
 
     @Transactional(readOnly = true)
-    public BoardResponse.BoardListDTO getList(User user,String sort,Integer page,Integer size) {
+    public BoardResponse.BoardListDTO getList(User user,String sort,Integer page,Integer size,String keyword) {
         BoardListSortType sortType =BoardListSortType.valueOf(sort);
         List<BoardResponse.BoardANDCountDTO> boards;
         switch (sortType) {
-            case CREATED_AT_DESC -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size);
-            case VIEW_COUNT_DESC -> boards = boardRepository.findAllOrderbyViews(user.getId(),page,size);
-            case BOOKMARK_COUNT_DESC -> boards = boardRepository.findAllOrderbyBookCount(user.getId(),page,size);
-            default -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size);
+            case CREATED_AT_DESC -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size,keyword);
+            case VIEW_COUNT_DESC -> boards = boardRepository.findAllOrderbyViews(user.getId(),page,size,keyword);
+            case BOOKMARK_COUNT_DESC -> boards = boardRepository.findAllOrderbyBookCount(user.getId(),page,size,keyword);
+            default -> boards = boardRepository.findAllOrderbyCreateAt(user.getId(),page,size,keyword);
         }
         return new BoardResponse.BoardListDTO(boards,page,size,boardRepository.boardTotalCount());
     }
-    // 키워드
-    @Transactional
-    public BoardResponse.BoardListSearchDTO getSearchBoardList(User user, String keyword, String sort,Integer page, Integer size) {
-        BoardListSortType sortType = BoardListSortType.valueOf(sort);
-        List<BoardResponse.BoardANDCountDTO> searchBoardList;
 
-        switch (sortType) {
-            case CREATED_AT_DESC ->
-                    searchBoardList = boardRepository.findSearchBoardListOrderbyCreateAt(user.getId(), keyword, page, size);
-            case VIEW_COUNT_DESC ->
-                    searchBoardList = boardRepository.findSearchBoardListOrderbyViews(user.getId(), keyword, page, size);
-            case BOOKMARK_COUNT_DESC ->
-                    searchBoardList = boardRepository.findSearchBoardListOrderbyBookCount(user.getId(), keyword, page, size);
-            default ->
-                    searchBoardList = boardRepository.findSearchBoardListOrderbyCreateAt(user.getId(), keyword, page, size);
-        }
-
-        long totalCount = boardRepository.boardSearchTotalCount(keyword);
-        return new BoardResponse.BoardListSearchDTO(searchBoardList, page, size, totalCount);
-    }
 
     @Transactional(readOnly = true)
     public BoardResponse.DetailDTO getBoardDetail(Integer boardId, User user) {

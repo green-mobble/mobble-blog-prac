@@ -38,10 +38,10 @@
         <h2>피드</h2>
         <h3>HOT TOPIC</h3>
         <div class="feed-sorting">
-            <a href="/boards?sort=CREATED_AT_DESC">최신순</a> | <a
-                href="/boards?sort=VIEW_COUNT_DESC">조회수순</a>
+            <a href="/boards?sort=CREATED_AT_DESC&keyword={{keyword}}">최신순</a> | <a
+                href="/boards?sort=VIEW_COUNT_DESC&keyword={{keyword}}">조회수순</a>
             | <a
-                href="/boards?sort=BOOKMARK_COUNT_DESC">북마크순</a>
+                href="/boards?sort=BOOKMARK_COUNT_DESC&keyword={{keyword}}">북마크순</a>
         </div>
 
         <!-- 글 카드 1 -->
@@ -98,11 +98,11 @@
         <!-- 페이징 -->
         <div class="pagination">
             {{^model.isFirst}}
-                <a href="/boards?&page={{model.prev}}&sort={{currentSort}}">prev</a>
+                <a href="/boards?&page={{model.prev}}&sort={{currentSort}}&keyword={{keyword}}">prev</a>
             {{/model.isFirst}}
 
             {{^model.isLast}}
-                <a href="/boards?&page={{model.next}}&sort={{currentSort}}">next</a>
+                <a href="/boards?&page={{model.next}}&sort={{currentSort}}&keyword={{keyword}}">next</a>
             {{/model.isLast}}
         </div>
     </section>

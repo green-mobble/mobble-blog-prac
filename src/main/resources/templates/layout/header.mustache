@@ -16,7 +16,7 @@
 
         <!-- 가운데: 검색 (있다면) -->
         <div class="search-box">
-            <form class="search" action="/boards/search" method="get" role="search">
+            <form class="search" action="/boards" method="get" role="search">
                 <input
                         class="search-input"
                         type="search"
@@ -24,6 +24,7 @@
                         placeholder="검색어를 입력하세요"
                         aria-label="사이트 검색"
                 />
+                <input type="hidden" name="currentSort" value="CREATED_AT_DESC">
                 <button
                         class="btn-clear"
                         type="button"

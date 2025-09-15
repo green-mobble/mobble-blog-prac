@@ -46,28 +46,18 @@ public class BoardController {
     // 모든 게시물 목록 찾기
     @GetMapping
     public String getBoardsList(HttpServletRequest request,
+                                @RequestParam(defaultValue = "") String keyword,
                                 @RequestParam(defaultValue = "CREATED_AT_DESC") String sort,
                                 @RequestParam(defaultValue = "0") Integer page) {
         User user = getSessionUser();
-        BoardResponse.BoardListDTO reqDTO = boardService.getList(user,sort,page,size);
+        BoardResponse.BoardListDTO reqDTO = boardService.getList(user,sort,page,size,keyword);
+        request.setAttribute("keyword",keyword);
         request.setAttribute("currentSort",sort);
         request.setAttribute("model", reqDTO);
         return "board/list-page";
     }
 
-    // 게시물 검색
-    @GetMapping("/search")
-    public String boardSearch(HttpServletRequest request,@RequestParam String keyword,
-                              @RequestParam(defaultValue = "CREATED_AT_DESC") String sort,
-                              @RequestParam(defaultValue = "0") Integer page){
-        User user = getSessionUser();
-        BoardResponse.BoardListSearchDTO reqDTO = boardService.getSearchBoardList(user,keyword,sort,page,size);
 
-        request.setAttribute("keyword",keyword);
-        request.setAttribute("currentSort",sort);
-        request.setAttribute("model", reqDTO);
-        return "board/list-search-page";
-    }
 
     @GetMapping("/{id}")
     public String getBoard(HttpServletRequest request, @PathVariable(name = "id") Integer boardId) {
