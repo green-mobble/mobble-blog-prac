@@ -76,19 +76,10 @@ public class BoardRepository {
             int firstIndex,
             int maxResult
     ) {
-        var joins = new java.util.ArrayList<String>();
-        String where = buildSearchWhere(key, keyword, joins, true); // 소문자 비교
-
+        String where = buildSearchWhere(key, keyword);
         String jpql = getBaseJpql(where, orderBy);
-        var q = em.createQuery(String.join(" ", java.util.List.of(
-                        // getBaseJpql 내부에서 기본 join 다 붙음
-                        // 여긴 추가 join들만 이어붙이기 위함
-                        jpql.replace("from Board b",
-                                "from Board b" + String.join(" ", joins))
-                )), Object[].class)
-                .setParameter("userId", loginUserId)
-                .setFirstResult(firstIndex)
-                .setMaxResults(maxResult);
+        var q = em.createQuery(jpql, Object[].class)
+                .setParameter("userId", loginUserId).setFirstResult(firstIndex).setMaxResults(maxResult);
 
         bindKeyword(q, keyword);
         return mapping(q.getResultList());
@@ -103,12 +94,9 @@ public class BoardRepository {
             int firstIndex,
             int maxResult
     ) {
-        var joins = new java.util.ArrayList<String>();
-        String where = buildSearchWhere(key, keyword, joins, true);
+        String where = buildSearchWhere(key, keyword);
 
         String jpql = getBaseJpql(where, orderBy);
-        jpql = jpql.replace("from Board b",
-                "from Board b left join b.bookmarks bm" + String.join(" ", joins)); // count(bm) 집계
 
         var q = em.createQuery(jpql, Object[].class)
                 .setParameter("userId", loginUserId)
@@ -179,24 +167,16 @@ public class BoardRepository {
     }
 
     // 공통: 검색 where 생성
-    // ✅ 기존 메서드를 이렇게 바꿔주세요
-//  - TITLE_CONTENT: title에는 lower() 적용, content에는 lower() 미적용 (CLOB 때문)
-//  - CATEGORY/USERNAME: lower() 계속 사용
-    private String buildSearchWhere(SearchKey key, String keyword, List<String> extraJoins, boolean caseInsensitive) {
+    //  - TITLE_CONTENT: title에는 lower() 적용, content에는 lower() 미적용 (CLOB 때문)
+    //  - CATEGORY/USERNAME: lower() 계속 사용
+    private String buildSearchWhere(SearchKey key, String keyword) {
         if (keyword == null || keyword.isBlank()) return "";
-
         return switch (key) {
             case TITLE_CONTENT ->
                 // title: lower() 사용, content: lower() 쓰지 않음
                     " where (lower(b.title) like :kwLower or b.content like :kwRaw) ";
-            case CATEGORY -> {
-                extraJoins.add(" join b.category c ");
-                yield " where lower(c.category) like :kwLower ";
-            }
-            case USERNAME -> {
-                extraJoins.add(" join b.user u ");
-                yield " where lower(u.username) like :kwLower ";
-            }
+            case CATEGORY -> " where lower(c.category) like :kwLower";
+            case USERNAME -> " where lower(u.username) like :kwLower";
         };
     }
 
